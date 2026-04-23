@@ -1,6 +1,7 @@
 """
 This is a program meant to track satelite movements and properly display them on a map
 """
+import matplotlib.pyplot as plt
 from datetime import datetime
 from skyfield.api import load, EarthSatellite
 
@@ -38,11 +39,27 @@ class Satellite:
 url = "https://celestrak.org/NORAD/elements/stations.txt"
 satellites = load.tle_file(url)
 
-# find ISS
 iss_data = next(s for s in satellites if "ISS" in s.name)
-
-# create object
 iss = Satellite(iss_data)
-
-# test
 iss.print_position()
+
+
+WIDTH=800
+HEIGHT=400
+
+def convert(lat, lon):
+    x=(lon+180)/360*WIDTH
+    y=(90-lat)/180*HEIGHT
+    return x, y;
+
+lat=30
+lon=30
+
+x, y=convert(lat, lon)
+
+plt.figure(figsize=(8,4))
+plt.xlim(0, WIDTH)
+plt.ylim(0, HEIGHT)
+plt.scatter(x, y)
+plt.gca().invert_yaxis()
+plt.show()
