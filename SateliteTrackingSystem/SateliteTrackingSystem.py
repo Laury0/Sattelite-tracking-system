@@ -2,6 +2,7 @@
 This is a program meant to track satelite movements and properly display them on a map
 """
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 from datetime import datetime
 from skyfield.api import load, EarthSatellite
 
@@ -47,6 +48,8 @@ class TwoD_Map:
         return x, y
 
     def setup(self):
+        img=mpimg.imread("World_Map.jpg")
+        self.map_axes.imshow(img, extent=[0, self.width, self.height, 0])
         self.map_axes.set_xlim(0, self.width)
         self.map_axes.set_ylim(0, self.height)
         self.map_axes.invert_yaxis()
