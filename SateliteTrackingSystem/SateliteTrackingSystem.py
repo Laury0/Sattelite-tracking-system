@@ -70,6 +70,9 @@ iss.print_position()
 
 m=TwoD_Map()
 m.setup()
-m.draw_point(30, 30)
+m.draw_point(0, 0)
+m.draw_point(51.5, 0)
+m.draw_point(54.7, 25.3)
+m.draw_point(-33.9, 151)
 m.display()
 
