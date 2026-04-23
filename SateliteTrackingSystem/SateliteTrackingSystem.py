@@ -35,6 +35,28 @@ class Satellite:
         print(f"Longitude: {abs(lon):.2f}° {lon_dir}")
         print(f"Altitude: {alt:.1f} km")
 
+class TwoD_Map:
+    def __init__(self, width=800, height=400):
+        self.width=width
+        self.height=height
+        self.figure, self.map_axes=plt.subplots(figsize=(8, 4))
+
+    def convert(self, lat, lon):
+        x=(lon+180)/360*self.width
+        y=(90-lat)/180*self.height
+        return x, y
+
+    def setup(self):
+        self.map_axes.set_xlim(0, self.width)
+        self.map_axes.set_ylim(0, self.height)
+        self.map_axes.invert_yaxis()
+
+    def draw_point(self, lat, lon):
+        x, y=self.convert(lat, lon)
+        self.map_axes.scatter(x, y)
+
+    def display(self):
+        plt.show();
 
 url = "https://celestrak.org/NORAD/elements/stations.txt"
 satellites = load.tle_file(url)
@@ -43,23 +65,8 @@ iss_data = next(s for s in satellites if "ISS" in s.name)
 iss = Satellite(iss_data)
 iss.print_position()
 
+m=TwoD_Map()
+m.setup()
+m.draw_point(30, 30)
+m.display()
 
-WIDTH=800
-HEIGHT=400
-
-def convert(lat, lon):
-    x=(lon+180)/360*WIDTH
-    y=(90-lat)/180*HEIGHT
-    return x, y;
-
-lat=30
-lon=30
-
-x, y=convert(lat, lon)
-
-plt.figure(figsize=(8,4))
-plt.xlim(0, WIDTH)
-plt.ylim(0, HEIGHT)
-plt.scatter(x, y)
-plt.gca().invert_yaxis()
-plt.show()
