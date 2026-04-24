@@ -85,6 +85,23 @@ class TwoD_Map:
             yy.append(y)
         self.map_axes.plot(xx, yy, color=sat.color, linewidth=1)
 
+    def legend(self, satellites):
+        start_y=20
+
+        for i, sat in enumerate(satellites):
+            geo = sat.get_position()
+            lat = geo.latitude.degrees
+            lon = geo.longitude.degrees
+            alt = geo.elevation.km
+            text = f"{sat.name[:10]} | {lat:.1f}, {lon:.1f} | {alt:.0f} km"
+
+            self.map_axes.text(
+                10,
+                start_y + i * 15,
+                text,
+                fontsize=8,
+                color=sat.color
+            )
 class Satellite_Manager:
     def __init__(self, satellites):
         self.all_satellites=satellites
@@ -134,8 +151,9 @@ while True:
         m.draw_line(sat.trail, sat.color)
         m.draw_point(lat, lon)
         x, y = m.convert(lat, lon)
-        m.map_axes.text(x, y, sat.name, fontsize=6)
+        m.legend(manager.active)
 
+    m.map_axes.text(x, y, sat.name, fontsize=6)
     plt.pause(1)
     time.sleep(10)
 """
