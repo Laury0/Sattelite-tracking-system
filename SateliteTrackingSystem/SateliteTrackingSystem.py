@@ -1,6 +1,8 @@
 """
 This is a program meant to track satelite movements and properly display them on a map
 """
+
+import threading
 import time
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -18,6 +20,7 @@ class Satellite:
         self.name = skyfield_sat.name
         self.sat = skyfield_sat
         self.ts = load.timescale()
+        self.trail=[]
 
     def get_position(self):
         t = self.ts.now()
@@ -75,13 +78,40 @@ class TwoD_Map:
             yy.append(y)
         self.map_axes.plot(xx, yy, color='red', linewidth=1)
 
+class Satellite_Manager:
+    def __init__(self, satellites):
+        self.all_satellites=satellites
+        self.active=[]
+
+    def find_sat(self, name):
+        for sati in self.all_satellites:
+            if name.upper() in sati.name:
+                return Satellite(sati)
+        return None
+
+    def add_satellite(self, name):
+        sat=self.find_sat(name)
+        if sat and sat.name not in [sati.name for sati in self.active]:
+            self.active.append(sat)
+            print(f"added: {sat.name}")
+        else:
+            print("Not found / alredy added")
+
+def input_loop(manager):
+    while True:
+        name=input("Add satllite: ")
+        manager.add_satellite(name)
+
 url = "https://celestrak.org/NORAD/elements/stations.txt"
 satellites = load.tle_file(url)
 
-iss_data = next(s for s in satellites if "ISS" in s.name)
-iss=Satellite(iss_data)
-sat_list=[Satellite(s) for s in satellites[:5]]
-sat_list=[iss]
+for sati in satellites:
+    print(sati.name)
+
+manager=Satellite_Manager(satellites)
+manager.add_satellite("ISS")
+
+threading.Thread(target=input_loop, args=(manager,), daemon=True).start()
 
 trail=[]
 m=TwoD_Map()
@@ -89,7 +119,7 @@ while True:
     m.map_axes.clear()
     m.setup()
 
-    for sat in sat_list:
+    for sat in manager.active:
         geo = sat.get_position()
         lat = geo.latitude.degrees
         lon = geo.longitude.degrees
