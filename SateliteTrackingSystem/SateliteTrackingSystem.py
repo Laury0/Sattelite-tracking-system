@@ -61,8 +61,19 @@ class TwoD_Map:
         x, y=self.convert(lat, lon)
         self.map_axes.scatter(x, y)
 
+    """
     def display(self):
         plt.show();
+    """
+
+    def draw_line(self, trail):
+        xx = []
+        yy = []
+        for lat, lon in trail:
+            x, y = self.convert(lat, lon)
+            xx.append(x)
+            yy.append(y)
+        self.map_axes.plot(xx, yy, color='red', linewidth=1)
 
 url = "https://celestrak.org/NORAD/elements/stations.txt"
 satellites = load.tle_file(url)
@@ -85,13 +96,11 @@ while True:
         trail.append((lat, lon))
         if len(trail)>50:
             trail.pop(0)
-        for t_lat, t_lon in trail:
-            m.draw_point(t_lat, t_lon)
+        m.draw_line(trail)
         m.draw_point(lat, lon)
 
     plt.pause(1)
     time.sleep(10)
-
 """
 m.setup()
 m.draw_point(0, 0)
