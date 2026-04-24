@@ -5,6 +5,7 @@ This is a program meant to track satelite movements and properly display them on
 import threading
 import time
 import random
+import json
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from matplotlib.widgets import TextBox, Button
@@ -13,15 +14,17 @@ from skyfield.api import load, EarthSatellite
 
 now = datetime.utcnow()  #Palydovai naudoja UTC laika, padaryti i class veliau, kad palydovo clase paveldetu
 formatted = now.strftime("%Y-%m-%d %H:%M:%S")
-print(formatted)
+"""print(formatted)"""
+
 
 ts=load.timescale()
+
 
 class Satellite:
     def __init__(self, skyfield_sat):
         self.name = skyfield_sat.name
         self.sat = skyfield_sat
-        self.ts = load.timescale()
+        self.ts = ts
         self.trail=[]
         self.color = (random.random(), random.random(), random.random())
 
@@ -47,7 +50,7 @@ class Satellite:
 
     def update_trail(self, lat, lon):
         self.trail.append((lat, lon))
-        if len(self.trail) > 500:
+        if len(self.trail) > 10000:
             self.trail.pop(0)
 
 class TwoD_Map:
@@ -108,6 +111,36 @@ class Satellite_Manager:
     def __init__(self, satellites):
         self.all_satellites=satellites
         self.active=[]
+        self.favorites = []
+
+    def add_favorite(self, name):
+        if name.upper() not in [fav.upper() for fav in self.favorites]:
+            self.favorites.append(name)
+            print(f"Favorited: {name}")
+
+    def remove_favorite(self, name):
+        self.favorites=[fav for fav in self.favorites if name.upper() not in fav.upper()]
+
+    def save_favorites(self):
+        data={"favorites": self.favorites}
+        with open("favorites.json", "w") as fav:
+            json.dump(data, fav, indent=4)
+
+    def load_favorites(self):
+        try:
+            with open("favorites.json") as fav:
+                data=json.load(fav)
+                self.favorites=data.get("favorites", [])
+        except:
+            print("No favorites file found")
+
+    def add_all_favorites(self):
+        for name in self.favorites:
+            self.add_satellite(name)
+
+    def reset_to_favorites(self):
+        self.active = []
+        self.add_all_favorites()
 
     def find_sat(self, name):
         for sati in self.all_satellites:
@@ -126,11 +159,35 @@ class Satellite_Manager:
     def remove_satellite(self, name):
         self.active = [s for s in self.active if name.upper() not in s.name]
 
+def show_help():
+    print("\n=== Satellite Tracking System ===")
+    print("Made by Laurynas Davidavicius EIRf-25\n")
+
+    print("Commands:")
+    print(" list           - shows all satellites")
+    print(" list N         - show first N satellites")
+    print(" search NAME    - search satellites")
+    print(" add NAME       - add satellite to map")
+    print(" remove NAME    - remove satellite from map")
+    print(" active         - show active satellites\n")
+
+    print("Favorites:")
+    print(" fav NAME       - add to favorites")
+    print(" unfav NAME     - remove from favorites")
+    print(" favorites      - show favorite list")
+    print(" savefav        - save favorites to file")
+    print(" loadfav        - load favorites from file")
+    print(" addfav         - add all favorites to map")
+    print(" resetfav       - reset map to favorites only\n")
+
+    print(" help           - show this menu again")
+    print("=================================\n")
+
 def input_loop(manager, satellites):
     while True:
         cmd = input("Command: ")
         if cmd == "list":
-            for s in satellites[:50]:
+            for s in satellites:
                 print(s.name)
         elif cmd.startswith("list "):
             try:
@@ -155,17 +212,37 @@ def input_loop(manager, satellites):
         elif cmd == "active":
             for sat in manager.active:
                 print(sat.name)
+        elif cmd.startswith("fav "):
+            manager.add_favorite(cmd[4:])
+        elif cmd.startswith("unfav "):
+            manager.remove_favorite(cmd[6:])
+        elif cmd == "favorites":
+            for f in manager.favorites:
+                print(f)
+        elif cmd == "savefav":
+            manager.save_favorites()
+        elif cmd == "loadfav":
+            manager.load_favorites()
+        elif cmd == "addfav":
+            manager.add_all_favorites()
+        elif cmd == "resetfav":
+            manager.reset_to_favorites()
+        elif cmd == "help":
+            show_help()
         else:
-            print("Commands: list, list N, search NAME, add NAME, remove NAME, active")
+            print("Commands: list, list N, search NAME, add NAME, remove NAME, active, fav NAME, unfav NAME, favorites, savefav, loadfav, addfav, resetfav")
 
 url = "https://celestrak.org/NORAD/elements/stations.txt"
 satellites = load.tle_file(url)
 
+"""
 for sati in satellites:
     print(sati.name)
+"""
 
 manager=Satellite_Manager(satellites)
 manager.add_satellite("ISS")
+show_help()
 
 threading.Thread(target=input_loop, args=(manager, satellites), daemon=True).start()
 
