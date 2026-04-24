@@ -47,7 +47,7 @@ class Satellite:
 
     def update_trail(self, lat, lon):
         self.trail.append((lat, lon))
-        if len(self.trail) > 50:
+        if len(self.trail) > 500:
             self.trail.pop(0)
 
 class TwoD_Map:
@@ -111,7 +111,7 @@ class Satellite_Manager:
 
     def find_sat(self, name):
         for sati in self.all_satellites:
-            if name.upper() in sati.name:
+            if name.upper() in sati.name.upper():
                 return Satellite(sati)
         return None
 
@@ -126,12 +126,37 @@ class Satellite_Manager:
     def remove_satellite(self, name):
         self.active = [s for s in self.active if name.upper() not in s.name]
 
-"""
-def input_loop(manager):
+def input_loop(manager, satellites):
     while True:
-        name=input("Add satllite: ")
-        manager.add_satellite(name)
-"""
+        cmd = input("Command: ")
+        if cmd == "list":
+            for s in satellites[:50]:
+                print(s.name)
+        elif cmd.startswith("list "):
+            try:
+                n = int(cmd.split()[1])
+                for s in satellites[:n]:
+                    print(s.name)
+            except:
+                print("Invalid number")
+        elif cmd.startswith("search "):
+            term = cmd[7:].upper()
+            count = 0
+            for s in satellites:
+                if term in s.name.upper():
+                    print(s.name)
+                    count += 1
+                    if count >= 20:
+                        break
+        elif cmd.startswith("add "):
+            manager.add_satellite(cmd[4:])
+        elif cmd.startswith("remove "):
+            manager.remove_satellite(cmd[7:])
+        elif cmd == "active":
+            for sat in manager.active:
+                print(sat.name)
+        else:
+            print("Commands: list, list N, search NAME, add NAME, remove NAME, active")
 
 url = "https://celestrak.org/NORAD/elements/stations.txt"
 satellites = load.tle_file(url)
@@ -142,9 +167,7 @@ for sati in satellites:
 manager=Satellite_Manager(satellites)
 manager.add_satellite("ISS")
 
-"""
-threading.Thread(target=input_loop, args=(manager,), daemon=True).start()
-"""
+threading.Thread(target=input_loop, args=(manager, satellites), daemon=True).start()
 
 m=TwoD_Map()
 m.setup()
