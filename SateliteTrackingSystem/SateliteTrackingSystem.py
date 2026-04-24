@@ -4,6 +4,7 @@ This is a program meant to track satelite movements and properly display them on
 
 import threading
 import time
+import random
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from datetime import datetime
@@ -21,6 +22,7 @@ class Satellite:
         self.sat = skyfield_sat
         self.ts = load.timescale()
         self.trail=[]
+        self.color = (random.random(), random.random(), random.random())
 
     def get_position(self):
         t = self.ts.now()
@@ -67,21 +69,21 @@ class TwoD_Map:
 
     def draw_point(self, lat, lon):
         x, y=self.convert(lat, lon)
-        self.map_axes.scatter(x, y)
+        self.map_axes.scatter(x, y, color=sat.color)
 
     """
     def display(self):
         plt.show();
     """
 
-    def draw_line(self, trail):
+    def draw_line(self, trail, color):
         xx = []
         yy = []
         for lat, lon in trail:
             x, y = self.convert(lat, lon)
             xx.append(x)
             yy.append(y)
-        self.map_axes.plot(xx, yy, color='red', linewidth=1)
+        self.map_axes.plot(xx, yy, color=sat.color, linewidth=1)
 
 class Satellite_Manager:
     def __init__(self, satellites):
@@ -129,8 +131,10 @@ while True:
         lat = geo.latitude.degrees
         lon = geo.longitude.degrees
         sat.update_trail(lat, lon)
-        m.draw_line(sat.trail)
+        m.draw_line(sat.trail, sat.color)
         m.draw_point(lat, lon)
+        x, y = m.convert(lat, lon)
+        m.map_axes.text(x, y, sat.name, fontsize=6)
 
     plt.pause(1)
     time.sleep(10)
