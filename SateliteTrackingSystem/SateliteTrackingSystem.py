@@ -42,6 +42,11 @@ class Satellite:
         print(f"Longitude: {abs(lon):.2f}° {lon_dir}")
         print(f"Altitude: {alt:.1f} km")
 
+    def update_trail(self, lat, lon):
+        self.trail.append((lat, lon))
+        if len(self.trail) > 50:
+            self.trail.pop(0)
+
 class TwoD_Map:
     def __init__(self, width=800, height=400):
         self.width=width
@@ -123,10 +128,8 @@ while True:
         geo = sat.get_position()
         lat = geo.latitude.degrees
         lon = geo.longitude.degrees
-        trail.append((lat, lon))
-        if len(trail)>50:
-            trail.pop(0)
-        m.draw_line(trail)
+        sat.update_trail(lat, lon)
+        m.draw_line(sat.trail)
         m.draw_point(lat, lon)
 
     plt.pause(1)
