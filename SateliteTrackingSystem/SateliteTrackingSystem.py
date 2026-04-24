@@ -68,20 +68,29 @@ url = "https://celestrak.org/NORAD/elements/stations.txt"
 satellites = load.tle_file(url)
 
 iss_data = next(s for s in satellites if "ISS" in s.name)
-iss = Satellite(iss_data)
+iss=Satellite(iss_data)
+sat_list=[Satellite(s) for s in satellites[:5]]
+sat_list=[iss]
 
+trail=[]
 m=TwoD_Map()
 while True:
-    geo = iss.get_position()
-    lat = geo.latitude.degrees
-    lon = geo.longitude.degrees
-
     m.map_axes.clear()
     m.setup()
-    m.draw_point(lat, lon)
-    m.figure.canvas.draw()
-    plt.pause(0.1)
-    time.sleep(1)
+
+    for sat in sat_list:
+        geo = sat.get_position()
+        lat = geo.latitude.degrees
+        lon = geo.longitude.degrees
+        trail.append((lat, lon))
+        if len(trail)>50:
+            trail.pop(0)
+        for t_lat, t_lon in trail:
+            m.draw_point(t_lat, t_lon)
+        m.draw_point(lat, lon)
+
+    plt.pause(1)
+    time.sleep(10)
 
 """
 m.setup()
