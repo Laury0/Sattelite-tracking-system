@@ -116,31 +116,36 @@ class Satellite_Manager:
     def add_favorite(self, name):
         if name.upper() not in [fav.upper() for fav in self.favorites]:
             self.favorites.append(name)
-            print(f"Favorited: {name}")
+            print(f"Favorited: {self.name}")
 
     def remove_favorite(self, name):
         self.favorites=[fav for fav in self.favorites if name.upper() not in fav.upper()]
+        print(f"favorite {self.name} removed")
 
     def save_favorites(self):
         data={"favorites": self.favorites}
         with open("favorites.json", "w") as fav:
             json.dump(data, fav, indent=4)
+        print("Favorites saved")
 
     def load_favorites(self):
         try:
-            with open("favorites.json") as fav:
+            with open("Favorites.json") as fav:
                 data=json.load(fav)
                 self.favorites=data.get("favorites", [])
+                print("Favorites added program instance")
         except:
             print("No favorites file found")
 
     def add_all_favorites(self):
         for name in self.favorites:
             self.add_satellite(name)
+        print("All favorites added to map")
 
     def reset_to_favorites(self):
         self.active = []
         self.add_all_favorites()
+        print("Showing only favorites")
 
     def find_sat(self, name):
         for sati in self.all_satellites:
@@ -150,14 +155,18 @@ class Satellite_Manager:
 
     def add_satellite(self, name):
         sat=self.find_sat(name)
-        if sat and sat.name not in [sati.name for sati in self.active]:
-            self.active.append(sat)
-            print(f"added: {sat.name}")
-        else:
-            print("Not found / alredy added")
+        if not sat:
+            print(f"{sat.name}: Not found")
+            return
+        if sat.name in [sati.name for sati in self.active]:
+            print(f"{sat.name}: Alredy added")
+            return
+        self.active.append(sat)
+        print(f"{sat.name}: Added")
 
     def remove_satellite(self, name):
         self.active = [s for s in self.active if name.upper() not in s.name]
+        print(f"Removed {self.name}")
 
 def show_help():
     print("\n=== Satellite Tracking System ===")
