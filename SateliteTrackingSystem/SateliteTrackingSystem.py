@@ -7,6 +7,7 @@ import time
 import random
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from matplotlib.widgets import TextBox, Button
 from datetime import datetime
 from skyfield.api import load, EarthSatellite
 
@@ -67,9 +68,9 @@ class TwoD_Map:
         self.map_axes.set_ylim(0, self.height)
         self.map_axes.invert_yaxis()
 
-    def draw_point(self, lat, lon):
-        x, y=self.convert(lat, lon)
-        self.map_axes.scatter(x, y, color=sat.color)
+    def draw_point(self, lat, lon, color):
+        x, y = self.convert(lat, lon)
+        self.map_axes.scatter(x, y, color=color)
 
     """
     def display(self):
@@ -83,7 +84,7 @@ class TwoD_Map:
             x, y = self.convert(lat, lon)
             xx.append(x)
             yy.append(y)
-        self.map_axes.plot(xx, yy, color=sat.color, linewidth=1)
+        self.map_axes.plot(xx, yy, color=color, linewidth=1)
 
     def legend(self, satellites):
         start_y=20
@@ -102,6 +103,7 @@ class TwoD_Map:
                 fontsize=8,
                 color=sat.color
             )
+
 class Satellite_Manager:
     def __init__(self, satellites):
         self.all_satellites=satellites
@@ -121,10 +123,15 @@ class Satellite_Manager:
         else:
             print("Not found / alredy added")
 
+    def remove_satellite(self, name):
+        self.active = [s for s in self.active if name.upper() not in s.name]
+
+"""
 def input_loop(manager):
     while True:
         name=input("Add satllite: ")
         manager.add_satellite(name)
+"""
 
 url = "https://celestrak.org/NORAD/elements/stations.txt"
 satellites = load.tle_file(url)
@@ -135,10 +142,33 @@ for sati in satellites:
 manager=Satellite_Manager(satellites)
 manager.add_satellite("ISS")
 
+"""
 threading.Thread(target=input_loop, args=(manager,), daemon=True).start()
+"""
 
-trail=[]
 m=TwoD_Map()
+m.setup()
+axbox = plt.axes([0.1, 0.02, 0.3, 0.05])
+text_box = TextBox(axbox, 'Add Sat:')
+
+axbutton = plt.axes([0.45, 0.02, 0.1, 0.05])
+button = Button(axbutton, 'Add')
+
+def add_satellite(event):
+    name = text_box.text
+    manager.add_satellite(name)
+    text_box.set_val("")
+
+axremove = plt.axes([0.6, 0.02, 0.1, 0.05])
+remove_button = Button(axremove, 'Remove')
+
+def remove_sat(event):
+    name = text_box.text
+    manager.remove_satellite(name)
+    text_box.set_val("")
+
+remove_button.on_clicked(remove_sat)
+button.on_clicked(add_satellite)
 while True:
     m.map_axes.clear()
     m.setup()
@@ -147,15 +177,17 @@ while True:
         geo = sat.get_position()
         lat = geo.latitude.degrees
         lon = geo.longitude.degrees
-        sat.update_trail(lat, lon)
-        m.draw_line(sat.trail, sat.color)
-        m.draw_point(lat, lon)
-        x, y = m.convert(lat, lon)
-        m.legend(manager.active)
 
-    m.map_axes.text(x, y, sat.name, fontsize=6)
-    plt.pause(1)
-    time.sleep(10)
+        sat.update_trail(lat, lon)
+
+        m.draw_line(sat.trail, sat.color)
+        m.draw_point(lat, lon, sat.color)
+
+        x, y = m.convert(lat, lon)
+        m.map_axes.text(x, y, sat.name, fontsize=6)
+
+    m.legend(manager.active)
+    plt.pause(0.1)
 """
 m.setup()
 m.draw_point(0, 0)
