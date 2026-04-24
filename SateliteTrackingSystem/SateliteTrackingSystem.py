@@ -1,6 +1,7 @@
 """
 This is a program meant to track satelite movements and properly display them on a map
 """
+import time
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from datetime import datetime
@@ -9,6 +10,8 @@ from skyfield.api import load, EarthSatellite
 now = datetime.utcnow()  #Palydovai naudoja UTC laika, padaryti i class veliau, kad palydovo clase paveldetu
 formatted = now.strftime("%Y-%m-%d %H:%M:%S")
 print(formatted)
+
+ts=load.timescale()
 
 class Satellite:
     def __init__(self, skyfield_sat):
@@ -66,13 +69,26 @@ satellites = load.tle_file(url)
 
 iss_data = next(s for s in satellites if "ISS" in s.name)
 iss = Satellite(iss_data)
-iss.print_position()
 
 m=TwoD_Map()
+while True:
+    geo = iss.get_position()
+    lat = geo.latitude.degrees
+    lon = geo.longitude.degrees
+
+    m.map_axes.clear()
+    m.setup()
+    m.draw_point(lat, lon)
+    m.figure.canvas.draw()
+    plt.pause(0.1)
+    time.sleep(1)
+
+"""
 m.setup()
 m.draw_point(0, 0)
 m.draw_point(51.5, 0)
 m.draw_point(54.7, 25.3)
 m.draw_point(-33.9, 151)
+m.draw_point(lat, lon)
 m.display()
-
+"""
