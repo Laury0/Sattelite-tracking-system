@@ -162,18 +162,30 @@ class Satellite_Manager:
                 data=json.load(fav)
                 self.favorites=data.get("favorites", [])
                 print("Favorites added program instance")
+        except FileNotFoundError:
+            print("No favorites file found, please save something to favorites")
         except:
-            print("No favorites file found")
+            print("No favorites in file found")
 
     def add_all_favorites(self):
-        for name in self.favorites:
-            self.add_satellite(name)
-        print("All favorites added to map")
+        try:
+            for name in self.favorites:
+                self.add_satellite(name)
+            print("All favorites added to map")
+        except FileNotFoundError:
+            print("No favorites file found")
+        except:
+            print("No favorites in file found")
 
     def reset_to_favorites(self):
-        self.active = [obj for obj in self.active if isinstance(obj, GroundStation)]
-        self.add_all_favorites()
-        print("Showing only favorites")
+        try:
+            self.active = [obj for obj in self.active if isinstance(obj, GroundStation)]
+            self.add_all_favorites()
+            print("Showing only favorites")
+        except FileNotFoundError:
+            print("No favorites file found")
+        except:
+            print("No favorites in file found")
 
     def find_sat(self, name):
         for sati in self.all_satellites:
