@@ -81,7 +81,8 @@ class TwoD_Map:
                 self.draw_line(obj.trail, obj.color)
                 self.draw_point(lat, lon, obj.color)
                 x, y = self.convert(lat, lon)
-                self.map_axes.text(x, y, obj.name, fontsize=6)
+                text = self.map_axes.text(x, y,obj.name,fontsize=6,color=obj.color,fontweight='bold')
+                text.set_path_effects([path_effects.Stroke(linewidth=2, foreground='black'),path_effects.Normal()])
 
         grounds = [o for o in manager.active if isinstance(o, GroundStation)]
         sats = [o for o in manager.active if isinstance(o, Satellite)]
