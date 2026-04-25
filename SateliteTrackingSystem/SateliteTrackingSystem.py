@@ -8,6 +8,7 @@ import random
 import json
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from skyfield.api import wgs84
 from matplotlib.widgets import TextBox, Button
 from datetime import datetime
 from skyfield.api import load, EarthSatellite
@@ -43,6 +44,16 @@ class SpaceObject:
             self._trail.pop(0)
     def get_position(self):
         raise NotImplementedError
+
+class GroundStation(SpaceObject):
+    def __init__(self, name, lat, lon):
+        super().__init__(name, color=(1, 0, 0))
+        self.lat = lat
+        self.lon = lon
+        self.location = wgs84.latlon(lat, lon)
+
+    def get_position(self):
+        return self.location
 
 class Satellite(SpaceObject):
     def __init__(self, skyfield_sat):
@@ -268,6 +279,7 @@ for sati in satellites:
 
 manager=Satellite_Manager(satellites)
 manager.add_satellite("ISS")
+manager.active.append(GroundStation("Vilnius", 54.7, 25.3))
 show_help()
 
 threading.Thread(target=input_loop, args=(manager, satellites), daemon=True).start()
@@ -295,6 +307,15 @@ def remove_sat(event):
 
 remove_button.on_clicked(remove_sat)
 button.on_clicked(add_satellite)
+
+def is_visible(sat, ground):
+    t = ts.now()
+    difference = sat.sat - ground.location
+    topocentric = difference.at(t)
+    alt, az, distance = topocentric.altaz()
+
+    return alt.degrees > 0
+
 while True:
     m.map_axes.clear()
     m.setup()
@@ -311,6 +332,19 @@ while True:
 
         x, y = m.convert(lat, lon)
         m.map_axes.text(x, y, sat.name, fontsize=6)
+
+    ground_objects = [obj for obj in manager.active if isinstance(obj, GroundStation)]
+
+    sat_objects = [obj for obj in manager.active if isinstance(obj, Satellite)]
+
+    for ground in ground_objects:
+        g_geo = ground.get_position()
+        gx, gy = m.convert(ground.lat, ground.lon)
+        for sat in sat_objects:
+            if is_visible(sat, ground):
+                geo = sat.get_position()
+                sx, sy = m.convert(geo.latitude.degrees, geo.longitude.degrees)
+                m.map_axes.plot([gx, sx], [gy, sy], color="red", linewidth=1)
 
     m.legend(manager.active)
     plt.pause(0.1)
