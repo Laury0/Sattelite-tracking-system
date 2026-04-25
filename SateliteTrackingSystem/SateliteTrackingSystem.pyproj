@@ -21,7 +21,16 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Core\Factory.py" />
+    <Compile Include="Core\Space_Objects.py" />
+    <Compile Include="Data\Manager.py" />
+    <Compile Include="Map\Map.py" />
     <Compile Include="SateliteTrackingSystem.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Map\" />
+    <Folder Include="Core\" />
+    <Folder Include="Data\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

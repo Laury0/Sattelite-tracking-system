@@ -12,211 +12,16 @@ from skyfield.api import wgs84
 from matplotlib.widgets import TextBox, Button
 from datetime import datetime
 from skyfield.api import load, EarthSatellite
+from Core.Factory import SpaceObjectFactory
+from Core.Space_Objects import Satellite, GroundStation
+from Data.Manager import Satellite_Manager
+from Map.Map import TwoD_Map
 
 now = datetime.utcnow()  #Palydovai naudoja UTC laika, padaryti i class veliau, kad palydovo clase paveldetu
 formatted = now.strftime("%Y-%m-%d %H:%M:%S")
 """print(formatted)"""
 
-
 ts=load.timescale()
-
-class SpaceObjectFactory:
-    @staticmethod
-    def create_object(obj_type, *args):
-        if obj_type == "satellite":
-            return Satellite(*args)
-        elif obj_type == "ground":
-            return GroundStation(*args)
-        else:
-            raise ValueError("Unknown object type")
-
-class SpaceObject:
-    def __init__(self, name, color=None):
-        self._name = name
-        self._trail = []
-        self._max_trail = 10000
-
-        self._color = color if color else (
-            random.random(), random.random(), random.random()
-        )
-    @property
-    def name(self):
-        return self._name
-    @property
-    def trail(self):
-        return self._trail
-    @property
-    def color(self):
-        return self._color
-    def update_trail(self, lat, lon):
-        self._trail.append((lat, lon))
-        if len(self._trail) > self._max_trail:
-            self._trail.pop(0)
-    def get_position(self):
-        raise NotImplementedError
-
-class GroundStation(SpaceObject):
-    def __init__(self, name, lat, lon):
-        super().__init__(name, color=(1, 0, 0))
-        self.lat = lat
-        self.lon = lon
-        self.location = wgs84.latlon(lat, lon)
-
-    def get_position(self):
-        return self.location
-
-class Satellite(SpaceObject):
-    def __init__(self, skyfield_sat):
-        super().__init__(skyfield_sat.name)
-        self.sat = skyfield_sat
-        self.ts = ts
-
-    def get_position(self):
-        t = self.ts.now()
-        geo = self.sat.at(t).subpoint()
-        return geo
-
-    def print_position(self):
-        geo = self.get_position()
-
-        lat = geo.latitude.degrees
-        lon = geo.longitude.degrees
-        alt = geo.elevation.km
-
-        lat_dir = "N" if lat >= 0 else "S"
-        lon_dir = "E" if lon >= 0 else "W"
-
-        print("Satellite:", self.name)
-        print(f"Latitude: {abs(lat):.2f}° {lat_dir}")
-        print(f"Longitude: {abs(lon):.2f}° {lon_dir}")
-        print(f"Altitude: {alt:.1f} km")
-
-class TwoD_Map:
-    def __init__(self, width=800, height=400):
-        self.width=width
-        self.height=height
-        self.figure, self.map_axes=plt.subplots(figsize=(8, 4))
-
-    def convert(self, lat, lon):
-        x=(lon+180)/360*self.width
-        y=(90-lat)/180*self.height
-        return x, y
-
-    def setup(self):
-        img=mpimg.imread("World_Map.jpg")
-        self.map_axes.imshow(img, extent=[0, self.width, self.height, 0])
-        self.map_axes.set_xlim(0, self.width)
-        self.map_axes.set_ylim(0, self.height)
-        self.map_axes.invert_yaxis()
-
-    def draw_point(self, lat, lon, color):
-        x, y = self.convert(lat, lon)
-        self.map_axes.scatter(x, y, color=color)
-
-    """
-    def display(self):
-        plt.show();
-    """
-
-    def draw_line(self, trail, color):
-        xx = []
-        yy = []
-        for lat, lon in trail:
-            x, y = self.convert(lat, lon)
-            xx.append(x)
-            yy.append(y)
-        self.map_axes.plot(xx, yy, color=color, linewidth=1)
-
-    def legend(self, satellites):
-        start_y=20
-
-        for i, sat in enumerate(satellites):
-            geo = sat.get_position()
-            lat = geo.latitude.degrees
-            lon = geo.longitude.degrees
-            alt = geo.elevation.km
-            text = f"{sat.name[:10]} | {lat:.1f}, {lon:.1f} | {alt:.0f} km"
-
-            self.map_axes.text(
-                10,
-                start_y + i * 15,
-                text,
-                fontsize=8,
-                color=sat.color
-            )
-
-class Satellite_Manager:
-    def __init__(self, satellites):
-        self.all_satellites=satellites
-        self.active=[]
-        self.favorites = []
-
-    def add_favorite(self, name):
-        if name.upper() not in [fav.upper() for fav in self.favorites]:
-            self.favorites.append(name)
-            print(f"Favorited: {name}")
-
-    def remove_favorite(self, name):
-        self.favorites=[fav for fav in self.favorites if name.upper() not in fav.upper()]
-        print(f"favorite {name} removed")
-
-    def save_favorites(self):
-        data={"favorites": self.favorites}
-        with open("favorites.json", "w") as fav:
-            json.dump(data, fav, indent=4)
-        print("Favorites saved")
-
-    def load_favorites(self):
-        try:
-            with open("favorites.json") as fav:
-                data=json.load(fav)
-                self.favorites=data.get("favorites", [])
-                print("Favorites added program instance")
-        except FileNotFoundError:
-            print("No favorites file found, please save something to favorites")
-        except:
-            print("No favorites in file found")
-
-    def add_all_favorites(self):
-        try:
-            for name in self.favorites:
-                self.add_satellite(name)
-            print("All favorites added to map")
-        except FileNotFoundError:
-            print("No favorites file found")
-        except:
-            print("No favorites in file found")
-
-    def reset_to_favorites(self):
-        try:
-            self.active = [obj for obj in self.active if isinstance(obj, GroundStation)]
-            self.add_all_favorites()
-            print("Showing only favorites")
-        except FileNotFoundError:
-            print("No favorites file found")
-        except:
-            print("No favorites in file found")
-
-    def find_sat(self, name):
-        for sati in self.all_satellites:
-            if name.upper() in sati.name.upper():
-                return SpaceObjectFactory.create_object("satellite", sati)
-        return None
-
-    def add_satellite(self, name):
-        sat=self.find_sat(name)
-        if not sat:
-            print(f"{name}: Not found")
-            return
-        if sat.name in [sati.name for sati in self.active]:
-            print(f"{sat.name}: Alredy added")
-            return
-        self.active.append(sat)
-        print(f"{sat.name}: Added")
-
-    def remove_satellite(self, name):
-        self.active = [s for s in self.active if name.upper() not in s.name]
-        print(f"Removed {name}")
 
 class SatelliteApp:
     def __init__(self):
@@ -228,7 +33,7 @@ class SatelliteApp:
         url = "https://celestrak.org/NORAD/elements/stations.txt"
         self.satellites = load.tle_file(url)
 
-        self.manager = Satellite_Manager(self.satellites)
+        self.manager = Satellite_Manager(self.satellites, ts)
         self.manager.load_favorites()
         self.manager.add_satellite("ISS")
 
@@ -259,51 +64,6 @@ class SatelliteApp:
         name = self.text_box.text
         self.manager.remove_satellite(name)
         self.text_box.set_val("")
-
-    def is_visible(self, sat, ground):
-        t = ts.now()
-        difference = sat.sat - ground.location
-        topocentric = difference.at(t)
-        alt, az, distance = topocentric.altaz()
-        return alt.degrees > 0
-
-    def update(self):
-        self.map.map_axes.clear()
-        self.map.setup()
-
-        for obj in self.manager.active:
-            if isinstance(obj, GroundStation):
-                lat, lon = obj.lat, obj.lon
-                self.map.draw_point(lat, lon, obj.color)
-                x, y = self.map.convert(lat, lon)
-                self.map.map_axes.text(x + 5, y + 5, obj.name, fontsize=8)
-
-            elif isinstance(obj, Satellite):
-                geo = obj.get_position()
-                lat = geo.latitude.degrees
-                lon = geo.longitude.degrees
-
-                obj.update_trail(lat, lon)
-                self.map.draw_line(obj.trail, obj.color)
-                self.map.draw_point(lat, lon, obj.color)
-
-                x, y = self.map.convert(lat, lon)
-                self.map.map_axes.text(x, y, obj.name, fontsize=6)
-
-        grounds = [o for o in self.manager.active if isinstance(o, GroundStation)]
-        sats = [o for o in self.manager.active if isinstance(o, Satellite)]
-
-        for ground in grounds:
-            gx, gy = self.map.convert(ground.lat, ground.lon)
-            for sat in sats:
-                if self.is_visible(sat, ground):
-                    geo = sat.get_position()
-                    sx, sy = self.map.convert(
-                        geo.latitude.degrees,
-                        geo.longitude.degrees)
-                    self.map.map_axes.plot([gx, sx], [gy, sy], color="red")
-
-        self.map.legend(self.manager.active)
 
 def show_help():
     print("\n=== Satellite Tracking System ===")
@@ -387,13 +147,13 @@ threading.Thread(
     daemon=True
 ).start()
 
-app.map = TwoD_Map()
+app.map = TwoD_Map(ts)
 app.map.setup()
 
 app.setup_ui()
 
 while True:
-    app.update()
+    app.map.update(app.manager)
     plt.pause(0.1)
 """
 m.setup()
