@@ -20,6 +20,16 @@ formatted = now.strftime("%Y-%m-%d %H:%M:%S")
 
 ts=load.timescale()
 
+class SpaceObjectFactory:
+    @staticmethod
+    def create_object(obj_type, *args):
+        if obj_type == "satellite":
+            return Satellite(*args)
+        elif obj_type == "ground":
+            return GroundStation(*args)
+        else:
+            raise ValueError("Unknown object type")
+
 class SpaceObject:
     def __init__(self, name, color=None):
         self._name = name
@@ -190,7 +200,7 @@ class Satellite_Manager:
     def find_sat(self, name):
         for sati in self.all_satellites:
             if name.upper() in sati.name.upper():
-                return Satellite(sati)
+                return SpaceObjectFactory.create_object("satellite", sati)
         return None
 
     def add_satellite(self, name):
@@ -292,7 +302,7 @@ for sati in satellites:
 manager=Satellite_Manager(satellites)
 manager.load_favorites()
 manager.add_satellite("ISS")
-manager.active.append(GroundStation("Vilnius", 54.7, 25.3))
+manager.active.append(SpaceObjectFactory.create_object("ground", "Vilnius", 54.7, 25.3))
 show_help()
 
 threading.Thread(target=input_loop, args=(manager, satellites), daemon=True).start()
