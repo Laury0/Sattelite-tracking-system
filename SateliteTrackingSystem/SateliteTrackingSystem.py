@@ -19,14 +19,36 @@ formatted = now.strftime("%Y-%m-%d %H:%M:%S")
 
 ts=load.timescale()
 
+class SpaceObject:
+    def __init__(self, name, color=None):
+        self._name = name
+        self._trail = []
+        self._max_trail = 10000
 
-class Satellite:
+        self._color = color if color else (
+            random.random(), random.random(), random.random()
+        )
+    @property
+    def name(self):
+        return self._name
+    @property
+    def trail(self):
+        return self._trail
+    @property
+    def color(self):
+        return self._color
+    def update_trail(self, lat, lon):
+        self._trail.append((lat, lon))
+        if len(self._trail) > self._max_trail:
+            self._trail.pop(0)
+    def get_position(self):
+        raise NotImplementedError
+
+class Satellite(SpaceObject):
     def __init__(self, skyfield_sat):
-        self.name = skyfield_sat.name
+        super().__init__(skyfield_sat.name)
         self.sat = skyfield_sat
         self.ts = ts
-        self.trail=[]
-        self.color = (random.random(), random.random(), random.random())
 
     def get_position(self):
         t = self.ts.now()
@@ -47,11 +69,6 @@ class Satellite:
         print(f"Latitude: {abs(lat):.2f}° {lat_dir}")
         print(f"Longitude: {abs(lon):.2f}° {lon_dir}")
         print(f"Altitude: {alt:.1f} km")
-
-    def update_trail(self, lat, lon):
-        self.trail.append((lat, lon))
-        if len(self.trail) > 10000:
-            self.trail.pop(0)
 
 class TwoD_Map:
     def __init__(self, width=800, height=400):
@@ -116,11 +133,11 @@ class Satellite_Manager:
     def add_favorite(self, name):
         if name.upper() not in [fav.upper() for fav in self.favorites]:
             self.favorites.append(name)
-            print(f"Favorited: {self.name}")
+            print(f"Favorited: {name}")
 
     def remove_favorite(self, name):
         self.favorites=[fav for fav in self.favorites if name.upper() not in fav.upper()]
-        print(f"favorite {self.name} removed")
+        print(f"favorite {name} removed")
 
     def save_favorites(self):
         data={"favorites": self.favorites}
@@ -130,7 +147,7 @@ class Satellite_Manager:
 
     def load_favorites(self):
         try:
-            with open("Favorites.json") as fav:
+            with open("favorites.json") as fav:
                 data=json.load(fav)
                 self.favorites=data.get("favorites", [])
                 print("Favorites added program instance")
@@ -156,7 +173,7 @@ class Satellite_Manager:
     def add_satellite(self, name):
         sat=self.find_sat(name)
         if not sat:
-            print(f"{sat.name}: Not found")
+            print(f"{name}: Not found")
             return
         if sat.name in [sati.name for sati in self.active]:
             print(f"{sat.name}: Alredy added")
@@ -166,7 +183,7 @@ class Satellite_Manager:
 
     def remove_satellite(self, name):
         self.active = [s for s in self.active if name.upper() not in s.name]
-        print(f"Removed {self.name}")
+        print(f"Removed {name}")
 
 def show_help():
     print("\n=== Satellite Tracking System ===")
