@@ -22,9 +22,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Core\Factory.py" />
+    <Compile Include="Core\__init__.py" />
     <Compile Include="Core\Space_Objects.py" />
     <Compile Include="Data\Manager.py" />
+    <Compile Include="Data\__init__.py" />
     <Compile Include="Map\Map.py" />
+    <Compile Include="Map\__init__.py" />
+    <Compile Include="Testing.py" />
     <Compile Include="SateliteTrackingSystem.py" />
   </ItemGroup>
   <ItemGroup>

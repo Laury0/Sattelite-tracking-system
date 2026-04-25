@@ -1,5 +1,5 @@
 """
-This is a program meant to track satelite movements and properly display them on a map
+For testing please open terminal with ctrl+' and write in py -m unittest Testing.py. BE SURE TO BE IN THE CORRECT DIRECTORY!!!
 """
 
 import threading
