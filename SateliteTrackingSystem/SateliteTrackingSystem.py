@@ -171,7 +171,7 @@ class Satellite_Manager:
         print("All favorites added to map")
 
     def reset_to_favorites(self):
-        self.active = []
+        self.active = [obj for obj in self.active if isinstance(obj, GroundStation)]
         self.add_all_favorites()
         print("Showing only favorites")
 
@@ -320,25 +320,28 @@ while True:
     m.map_axes.clear()
     m.setup()
 
-    for sat in manager.active:
-        geo = sat.get_position()
-        lat = geo.latitude.degrees
-        lon = geo.longitude.degrees
+    for obj in manager.active:
+        if isinstance(obj, GroundStation):
+            lat = obj.lat
+            lon = obj.lon
+            m.draw_point(lat, lon, obj.color)
+            x, y = m.convert(lat, lon)
+            m.map_axes.text(x + 5, y + 5, obj.name, fontsize=8)
 
-        sat.update_trail(lat, lon)
-
-        m.draw_line(sat.trail, sat.color)
-        m.draw_point(lat, lon, sat.color)
-
-        x, y = m.convert(lat, lon)
-        m.map_axes.text(x, y, sat.name, fontsize=6)
+        elif isinstance(obj, Satellite):
+            geo = obj.get_position()
+            lat = geo.latitude.degrees
+            lon = geo.longitude.degrees
+            obj.update_trail(lat, lon)
+            m.draw_line(obj.trail, obj.color)
+            m.draw_point(lat, lon, obj.color)
+            x, y = m.convert(lat, lon)
+            m.map_axes.text(x, y, obj.name, fontsize=6)
 
     ground_objects = [obj for obj in manager.active if isinstance(obj, GroundStation)]
-
     sat_objects = [obj for obj in manager.active if isinstance(obj, Satellite)]
 
     for ground in ground_objects:
-        g_geo = ground.get_position()
         gx, gy = m.convert(ground.lat, ground.lon)
         for sat in sat_objects:
             if is_visible(sat, ground):
