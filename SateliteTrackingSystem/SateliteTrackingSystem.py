@@ -278,6 +278,7 @@ for sati in satellites:
 """
 
 manager=Satellite_Manager(satellites)
+manager.load_favorites()
 manager.add_satellite("ISS")
 manager.active.append(GroundStation("Vilnius", 54.7, 25.3))
 show_help()
