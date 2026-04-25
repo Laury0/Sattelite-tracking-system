@@ -218,6 +218,93 @@ class Satellite_Manager:
         self.active = [s for s in self.active if name.upper() not in s.name]
         print(f"Removed {name}")
 
+class SatelliteApp:
+    def __init__(self):
+        self.manager = None
+        self.satellites = None
+        self.map = None
+
+    def setup_system(self):
+        url = "https://celestrak.org/NORAD/elements/stations.txt"
+        self.satellites = load.tle_file(url)
+
+        self.manager = Satellite_Manager(self.satellites)
+        self.manager.load_favorites()
+        self.manager.add_satellite("ISS")
+
+        vilnius = SpaceObjectFactory.create_object(
+            "ground", "Vilnius", 54.7, 25.3)
+        self.manager.active.append(vilnius)
+        show_help()
+
+    def setup_ui(self):
+        axbox = plt.axes([0.1, 0.02, 0.3, 0.05])
+        self.text_box = TextBox(axbox, 'Add Sat:')
+
+        axbutton = plt.axes([0.45, 0.02, 0.1, 0.05])
+        button = Button(axbutton, 'Add')
+
+        axremove = plt.axes([0.6, 0.02, 0.1, 0.05])
+        remove_button = Button(axremove, 'Remove')
+
+        button.on_clicked(self.add_satellite)
+        remove_button.on_clicked(self.remove_satellite)
+
+    def add_satellite(self, event):
+        name = self.text_box.text
+        self.manager.add_satellite(name)
+        self.text_box.set_val("")
+
+    def remove_satellite(self, event):
+        name = self.text_box.text
+        self.manager.remove_satellite(name)
+        self.text_box.set_val("")
+
+    def is_visible(self, sat, ground):
+        t = ts.now()
+        difference = sat.sat - ground.location
+        topocentric = difference.at(t)
+        alt, az, distance = topocentric.altaz()
+        return alt.degrees > 0
+
+    def update(self):
+        self.map.map_axes.clear()
+        self.map.setup()
+
+        for obj in self.manager.active:
+            if isinstance(obj, GroundStation):
+                lat, lon = obj.lat, obj.lon
+                self.map.draw_point(lat, lon, obj.color)
+                x, y = self.map.convert(lat, lon)
+                self.map.map_axes.text(x + 5, y + 5, obj.name, fontsize=8)
+
+            elif isinstance(obj, Satellite):
+                geo = obj.get_position()
+                lat = geo.latitude.degrees
+                lon = geo.longitude.degrees
+
+                obj.update_trail(lat, lon)
+                self.map.draw_line(obj.trail, obj.color)
+                self.map.draw_point(lat, lon, obj.color)
+
+                x, y = self.map.convert(lat, lon)
+                self.map.map_axes.text(x, y, obj.name, fontsize=6)
+
+        grounds = [o for o in self.manager.active if isinstance(o, GroundStation)]
+        sats = [o for o in self.manager.active if isinstance(o, Satellite)]
+
+        for ground in grounds:
+            gx, gy = self.map.convert(ground.lat, ground.lon)
+            for sat in sats:
+                if self.is_visible(sat, ground):
+                    geo = sat.get_position()
+                    sx, sy = self.map.convert(
+                        geo.latitude.degrees,
+                        geo.longitude.degrees)
+                    self.map.map_axes.plot([gx, sx], [gy, sy], color="red")
+
+        self.map.legend(self.manager.active)
+
 def show_help():
     print("\n=== Satellite Tracking System ===")
     print("Made by Laurynas Davidavicius EIRf-25\n")
@@ -291,88 +378,22 @@ def input_loop(manager, satellites):
         else:
             print("Commands: list, list N, search NAME, add NAME, remove NAME, active, fav NAME, unfav NAME, favorites, savefav, loadfav, addfav, resetfav")
 
-url = "https://celestrak.org/NORAD/elements/stations.txt"
-satellites = load.tle_file(url)
+app = SatelliteApp()
+app.setup_system()
 
-"""
-for sati in satellites:
-    print(sati.name)
-"""
+threading.Thread(
+    target=input_loop,
+    args=(app.manager, app.satellites),
+    daemon=True
+).start()
 
-manager=Satellite_Manager(satellites)
-manager.load_favorites()
-manager.add_satellite("ISS")
-manager.active.append(SpaceObjectFactory.create_object("ground", "Vilnius", 54.7, 25.3))
-show_help()
+app.map = TwoD_Map()
+app.map.setup()
 
-threading.Thread(target=input_loop, args=(manager, satellites), daemon=True).start()
-
-m=TwoD_Map()
-m.setup()
-axbox = plt.axes([0.1, 0.02, 0.3, 0.05])
-text_box = TextBox(axbox, 'Add Sat:')
-
-axbutton = plt.axes([0.45, 0.02, 0.1, 0.05])
-button = Button(axbutton, 'Add')
-
-def add_satellite(event):
-    name = text_box.text
-    manager.add_satellite(name)
-    text_box.set_val("")
-
-axremove = plt.axes([0.6, 0.02, 0.1, 0.05])
-remove_button = Button(axremove, 'Remove')
-
-def remove_sat(event):
-    name = text_box.text
-    manager.remove_satellite(name)
-    text_box.set_val("")
-
-remove_button.on_clicked(remove_sat)
-button.on_clicked(add_satellite)
-
-def is_visible(sat, ground):
-    t = ts.now()
-    difference = sat.sat - ground.location
-    topocentric = difference.at(t)
-    alt, az, distance = topocentric.altaz()
-
-    return alt.degrees > 0
+app.setup_ui()
 
 while True:
-    m.map_axes.clear()
-    m.setup()
-
-    for obj in manager.active:
-        if isinstance(obj, GroundStation):
-            lat = obj.lat
-            lon = obj.lon
-            m.draw_point(lat, lon, obj.color)
-            x, y = m.convert(lat, lon)
-            m.map_axes.text(x + 5, y + 5, obj.name, fontsize=8)
-
-        elif isinstance(obj, Satellite):
-            geo = obj.get_position()
-            lat = geo.latitude.degrees
-            lon = geo.longitude.degrees
-            obj.update_trail(lat, lon)
-            m.draw_line(obj.trail, obj.color)
-            m.draw_point(lat, lon, obj.color)
-            x, y = m.convert(lat, lon)
-            m.map_axes.text(x, y, obj.name, fontsize=6)
-
-    ground_objects = [obj for obj in manager.active if isinstance(obj, GroundStation)]
-    sat_objects = [obj for obj in manager.active if isinstance(obj, Satellite)]
-
-    for ground in ground_objects:
-        gx, gy = m.convert(ground.lat, ground.lon)
-        for sat in sat_objects:
-            if is_visible(sat, ground):
-                geo = sat.get_position()
-                sx, sy = m.convert(geo.latitude.degrees, geo.longitude.degrees)
-                m.map_axes.plot([gx, sx], [gy, sy], color="red", linewidth=1)
-
-    m.legend(manager.active)
+    app.update()
     plt.pause(0.1)
 """
 m.setup()
