@@ -27,19 +27,19 @@ Reikalingos bibliotekos:
 Enkapsuliacija reiškia duomenų slėpimą ir jų valdymą per metodus. Programoje objektų atributai yra saugomi kaip privatūs (pvz., `_name`, `_trail`), o prieiga prie jų suteikiama per metodus arba properties.
 Tai leidžia apsaugoti duomenis nuo tiesioginio keitimo ir lengviau valdyti.
 ![SpaceObject](Nuotraukos/spaceobject_class.png)
-*2 pav. SpaceObject klasė*
+*1 pav. SpaceObject klasė*
 
 #### Paveldėjimas
 Paveldėjimas leidžia kurti naujas klases, kurios perima savybes iš bazinės klasės. Šioje programoje klasės `Satellite` ir `GroundStation` paveldi bendrą klasę `SpaceObject`.
 Tai leidžia išvengti kodo dubliavimo ir naudoti tas pačias funkcijas skirtingiems objektams.
 ![Paveldėjimas](Nuotraukos/Paveldejimas.png)
-*3 pav. Paveldėjimas tarp Satellite, GroundStation ir SpaceObject*
+*2 pav. Paveldėjimas tarp Satellite, GroundStation ir SpaceObject*
 
 #### Polimorfizmas
 Polimorfizmas leidžia naudoti tą patį metodą skirtingiems objektams, tačiau su skirtingu elgesiu. Programoje metodas `get_position()` yra realizuotas skirtingai klasėse `Satellite` ir `GroundStation`.
 Nepaisant to, jis gali būti kviečiamas vienodai visoje sistemoje, nepriklausomai nuo objekto tipo.
 ![Polimorfizmas](Nuotraukos/Polimorfizmas.png)
-*4 pav. get_position metodo realizacija Satellite klasėje*
+*3 pav. get_position metodo realizacija Satellite klasėje*
 
 #### Abstrakcija
 Abstrakcija leidžia aprašyti bendrą idėją, neįsigilinant į visas detales. Klasė `SpaceObject` nurodo, kad turi būti metodas `get_position()`, tačiau jo pati neaprašo. 
@@ -56,7 +56,7 @@ Factory yra naudojamas, kai reikia dinamiškai sukurti objektus, pavyzdžiui:
 - Sukuriant antžeminę stotį (pvz., Vilnius)  
 Tai leidžia išlaikyti kodą tvarkingą ir lengvai plečiamą.
 ![Factory](Nuotraukos/Fabrikas.png)
-*5 pav. SpaceObjectFactory klasė ir objektų kūrimas*
+*4 pav. SpaceObjectFactory klasė ir objektų kūrimas*
 
 #### Kodėl pasirinktas Factory šablonas
 Factory šablonas buvo pasirinktas, nes programoje reikia kurti skirtingų tipų objektus (palydovus ir antžemines stotis), tačiau jų kūrimo logika yra panaši.
@@ -72,7 +72,7 @@ Tai reiškia, kad:
 - `Satellite_Manager` valdo objektus  
 - tačiau objektai nepriklauso nuo managerio
 ![Manager](Nuotraukos/Manager.png)
-*6 pav. Satellite_Manager klasė ir aktyvių objektų sąrašas*
+*5 pav. Satellite_Manager klasė ir aktyvių objektų sąrašas*
 
 #### Kodėl tai yra agregacija
 Jeigu `Satellite_Manager` būtų pašalintas, palydovai ir antžeminės stotys vis tiek galėtų egzistuoti atskirai. Jie nėra kuriami kaip managerio dalis, o tik saugomi jame.
@@ -85,13 +85,13 @@ Programoje įgyvendintas duomenų saugojimas ir nuskaitymas iš failo, naudojant
 Funkcija `save_favorites()` išsaugo dabartinį favorites sąrašą į failą `favorites.json`. Duomenys yra saugomi JSON formatu, kuris yra lengvai skaitomas ir struktūrizuotas.
 Tai leidžia programai išlaikyti vartotojo pasirinkimus net ir po programos uždarymo.
 ![Save](Nuotraukos/SaveFav.png)
-*7 pav. Favorites išsaugojimas į failą*
+*6 pav. Favorites išsaugojimas į failą*
 
 #### Duomenų nuskaitymas
 Funkcija `load_favorites()` nuskaito duomenis iš failo `favorites.json` ir atkuria favorites sąrašą programoje.
 Jeigu failas neegzistuoja, programa tai apdoroja ir pateikia atitinkamą pranešimą, taip užtikrinant stabilų veikimą.
 ![Load](Nuotraukos/LoadFav.png)
-*8 pav. Favorites nuskaitymas iš failo*
+*7 pav. Favorites nuskaitymas iš failo*
 
 ### 2.5 Testavimas
 Programos pagrindinis funkcionalumas buvo testuojamas naudojant `unittest` framework. Testai leidžia patikrinti, ar svarbiausios sistemos dalys veikia teisingai ir padeda greičiau aptikti klaidas.
@@ -113,13 +113,13 @@ Testuojamos šios funkcijos:
 - `Satellite_Manager.remove_satellite()` – tikrinamas pašalinimas  
 - `update_trail()` – tikrinamas duomenų atnaujinimas  
 ![Testai](Nuotraukos/Testai.png)
-*9 pav. unittest testavimo pavyzdys*
+*8 pav. unittest testavimo pavyzdys*
 
 ### 2.6 Vartotojo UI
 Programos vartotojo UI realizuota naudojant `matplotlib` biblioteką, kuri leidžia ne tik vizualizuoti duomenis, bet ir kurti interaktyvius valdiklius.
 Sistema pateikia dvimatį pasaulio žemėlapį, kuriame realiu laiku atvaizduojami palydovai, jų trajektorijos bei antžeminės stotys.
 ![UI](Nuotraukos/UI.png)
-*1 pav. Palydovų sekimo sistemos vartotojo sąsaja*
+*9 pav. Palydovų sekimo sistemos vartotojo sąsaja*
 
 #### Interaktyvūs valdikliai
 Vartotojo sąsajoje naudojami šie elementai:
