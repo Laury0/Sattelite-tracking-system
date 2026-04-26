@@ -152,4 +152,4 @@ Tai leidžia vartotojui greitai pasiekti dažniausiai naudojamus palydovus.
 ## 4. Išvados
 Šio darbo metu buvo sukurta pilnai veikianti palydovų sekimo sistema, kuri leidžia realiu laiku stebėti palydovų judėjimą ir juos valdyti per interaktyvią vartotojo sąsają.
 Programoje sėkmingai pritaikyti objektinio programavimo principai bei dizaino šablonai, kurie padėjo sukurti aiškią ir lengvai plečiamą sistemos struktūrą.
-Sukurta sistema yra funkcionali ir gali būti toliau tobulinama, pavyzdžiui, pridedant daugiau duomenų šaltinių, gerinant vartotojo sąsają arba įgyvendinant papildomas analizės funkcijas.
+Sukurta sistema yra funkcionali ir gali būti toliau tobulinama, pavyzdžiui, pridedant daugiau duomenų šaltinių.
