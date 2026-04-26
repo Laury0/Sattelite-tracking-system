@@ -61,7 +61,7 @@ class TwoD_Map:
             t = self.map_axes.text(10,start_y + i * 15,text,fontsize=8,color=sat.color,fontweight='bold')
             t.set_path_effects([path_effects.Stroke(linewidth=2, foreground='black'),path_effects.Normal()])
 
-    def update(self, manager):
+    def update(self, manager, page, per_page):
         self.map_axes.clear()
         self.setup()
 
@@ -95,5 +95,13 @@ class TwoD_Map:
                     sx, sy = self.convert(geo.latitude.degrees, geo.longitude.degrees)
                     text = self.map.map_axes.text(x + 5, y + 5, obj.name, fontsize=8, color=obj.color)
                     text.set_path_effects([path_effects.Stroke(linewidth=2, foreground='black'),path_effects.Normal()])
+
+        start = page * per_page
+        end = start + per_page
+        visible = manager.all_satellites[start:end]
+        for i, sat in enumerate(visible):
+            self.map_axes.text(667, 30 + i * 15, sat.name[:25], fontsize=8, color="white")
+
+        self.map_axes.text(667,15,f"Satellites p.{page + 1}",fontsize=10,color="yellow")
 
         self.legend(manager.active)

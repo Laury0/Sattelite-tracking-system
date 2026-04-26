@@ -28,6 +28,8 @@ class SatelliteApp:
         self.manager = None
         self.satellites = None
         self.map = None
+        self.page = 0
+        self.per_page = 10
 
     def setup_system(self):
         url = "https://celestrak.org/NORAD/elements/stations.txt"
@@ -46,14 +48,50 @@ class SatelliteApp:
         axbox = plt.axes([0.1, 0.02, 0.3, 0.05])
         self.text_box = TextBox(axbox, 'Add Sat:')
 
-        axbutton = plt.axes([0.45, 0.02, 0.1, 0.05])
-        button = Button(axbutton, 'Add')
+        axbutton = plt.axes([0.4, 0.02, 0.075, 0.05])
+        self.button = Button(axbutton, 'Add')
 
-        axremove = plt.axes([0.6, 0.02, 0.1, 0.05])
-        remove_button = Button(axremove, 'Remove')
+        axremove = plt.axes([0.475, 0.02, 0.075, 0.05])
+        self.remove_button = Button(axremove, 'Remove')
 
-        button.on_clicked(self.add_satellite)
-        remove_button.on_clicked(self.remove_satellite)
+        axfav = plt.axes([0.550, 0.02, 0.075, 0.05])
+        self.buttonfav = Button(axfav, 'Fav')
+
+        axunfav = plt.axes([0.625, 0.02, 0.075, 0.05])
+        self.buttonunfav = Button(axunfav, 'Unfav')
+
+        axreset = plt.axes([0.7, 0.02, 0.075, 0.05])
+        self.buttonreset = Button(axreset, 'Resetfav')
+
+        axsave = plt.axes([0.775, 0.02, 0.075, 0.05])
+        self.buttonsave = Button(axsave, 'SaveFav')
+
+        axaddfav = plt.axes([0.850, 0.02, 0.075, 0.05])
+        self.buttonaddfav = Button(axaddfav, 'AddFav')
+
+        """----------------------------------------"""
+        axprev = plt.axes([0.75, 0.9, 0.08, 0.04])
+        axnext = plt.axes([0.85, 0.9, 0.08, 0.04])
+        self.btnnext = Button(axnext, 'Next')
+        self.btnprev = Button(axprev, 'Prev')
+        self.btnprev.on_clicked(self.prev_page)
+        self.btnnext.on_clicked(self.next_page)
+
+        self.button.on_clicked(self.add_satellite)
+        self.remove_button.on_clicked(self.remove_satellite)
+        self.buttonfav.on_clicked(self.add_favorite)
+        self.buttonunfav.on_clicked(self.remove_favorite)
+        self.buttonreset.on_clicked(self.reset_favorites)
+        self.buttonsave.on_clicked(self.save_favorites)
+        self.buttonaddfav.on_clicked(self.add_all_favorites)
+
+    def next_page(self, event):
+        if (self.page + 1) * self.per_page < len(self.satellites):
+            self.page += 1
+
+    def prev_page(self, event):
+        if self.page > 0:
+            self.page -= 1
 
     def add_satellite(self, event):
         name = self.text_box.text
@@ -64,6 +102,35 @@ class SatelliteApp:
         name = self.text_box.text
         self.manager.remove_satellite(name)
         self.text_box.set_val("")
+
+    def add_satellite(self, event):
+        name = self.text_box.text
+        self.manager.add_satellite(name)
+        self.text_box.set_val("")
+
+    def remove_satellite(self, event):
+        name = self.text_box.text
+        self.manager.remove_satellite(name)
+        self.text_box.set_val("")
+
+    def add_favorite(self, event):
+        name = self.text_box.text
+        self.manager.add_favorite(name)
+        self.text_box.set_val("")
+
+    def remove_favorite(self, event):
+        name = self.text_box.text
+        self.manager.remove_favorite(name)
+        self.text_box.set_val("")
+
+    def reset_favorites(self, event):
+        self.manager.reset_to_favorites()
+
+    def save_favorites(self, event):
+        self.manager.save_favorites()
+
+    def add_all_favorites(self, event):
+        self.manager.add_all_favorites()
 
 def show_help():
     print("\n=== Satellite Tracking System ===")
@@ -153,7 +220,7 @@ app.map.setup()
 app.setup_ui()
 
 while True:
-    app.map.update(app.manager)
+    app.map.update(app.manager, app.page, app.per_page)
     plt.pause(0.1)
 """
 m.setup()
