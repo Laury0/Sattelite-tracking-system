@@ -142,14 +142,26 @@ Sistema taip pat turi papildomas funkcijas:
 - aktyvių palydovų valdymą  
 Tai leidžia vartotojui greitai pasiekti dažniausiai naudojamus palydovus.
 
-## 3. Rezultatai
+## 3.
+Rezultatai
 - Sėkmingai sukurta palydovų sekimo sistema, kuri realiu laiku atvaizduoja palydovus pasaulio žemėlapyje.  
 - Įgyvendinti visi pagrindiniai objektinio programavimo principai: enkapsuliacija, paveldėjimas, polimorfizmas ir abstrakcija.  
 - Programoje pritaikytas Factory dizaino šablonas bei agregacijos principas.  
 - Sukurta interaktyvi vartotojo sąsaja su mygtukais, leidžianti valdyti palydovus ir jų sąrašą.  
 - Daugiausia problemų buvo susiję su vartotojo sąsajos realizacija ir duomenų perdavimu tarp skirtingų sistemos komponentų.  
 
-## 4. Išvados
+Išvados
 Šio darbo metu buvo sukurta pilnai veikianti palydovų sekimo sistema, kuri leidžia realiu laiku stebėti palydovų judėjimą ir juos valdyti per interaktyvią vartotojo sąsają.
 Programoje sėkmingai pritaikyti objektinio programavimo principai bei dizaino šablonai, kurie padėjo sukurti aiškią ir lengvai plečiamą sistemos struktūrą.
 Sukurta sistema yra funkcionali ir gali būti toliau tobulinama, pavyzdžiui, pridedant daugiau duomenų šaltinių.
+
+## 4. Šaltiniai
+
+- Skyfield Python biblioteka  
+  https://rhodesmill.org/skyfield/  
+- Matplotlib biblioteka  
+  https://matplotlib.org/  
+- Python unittest modulis  
+  https://docs.python.org/3/library/unittest.html  
+- Factory Method dizaino šablonas  
+  https://refactoring.guru/design-patterns/factory-method  
